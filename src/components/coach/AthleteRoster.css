@@ -1,0 +1,120 @@
+.roster-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.roster-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 7px 12px;
+  min-width: 200px;
+}
+
+.roster-search input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  flex: 1;
+}
+.roster-search input:focus {
+  outline: none;
+}
+
+.roster-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.roster-filter {
+  background: var(--bg-1);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.roster-filter:hover {
+  color: var(--text-primary);
+}
+
+.roster-filter--active {
+  background: var(--accent-teal-wash);
+  border-color: var(--accent-teal-dim);
+  color: var(--accent-teal);
+}
+
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.roster-table thead th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  padding: 12px var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.roster-table tbody tr {
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.roster-table tbody tr:hover {
+  background: var(--bg-1);
+}
+
+.roster-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.roster-table td {
+  padding: 12px var(--space-5);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.roster-table__name {
+  color: var(--text-primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.roster-table__event {
+  display: block;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.roster-table__sport {
+  display: block;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.roster-table__empty {
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: var(--space-6);
+}

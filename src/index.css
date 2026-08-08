@@ -1,0 +1,131 @@
+@import "./styles/tokens.css";
+@import "./components/layout/dashboard.css";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-0);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Lane-line rail: the recurring signature motif — a tri-color track lane
+   used as a structural divider wherever we mark a transition or an
+   active state (sidebar, tab underline, section headers). */
+.lane-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.lane-rail span {
+  flex: 1;
+}
+.lane-rail span:nth-child(1) {
+  background: var(--accent-teal);
+}
+.lane-rail span:nth-child(2) {
+  background: var(--border-strong);
+}
+.lane-rail span:nth-child(3) {
+  background: var(--accent-coral);
+}
+
+.mono-stat {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+}
+
+.chart-tooltip {
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.chart-tooltip__label {
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+.chart-tooltip__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

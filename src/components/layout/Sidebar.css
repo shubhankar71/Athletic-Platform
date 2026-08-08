@@ -1,0 +1,120 @@
+.sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  height: 100%;
+  background: var(--bg-1);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5) var(--space-4);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 var(--space-2) var(--space-5);
+}
+
+.sidebar__brand-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.03em;
+}
+
+.sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-3) var(--space-3);
+  margin-bottom: var(--space-6);
+  background: var(--bg-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.sidebar__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-teal-wash);
+  color: var(--accent-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.sidebar__user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sidebar__user-meta {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  margin-top: 1px;
+}
+
+.sidebar__switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__switcher-label {
+  padding: 0 var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 9px var(--space-3) 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.sidebar__nav-item:hover {
+  background: var(--bg-2);
+  color: var(--text-primary);
+}
+
+.sidebar__nav-item--active {
+  background: var(--bg-2);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.sidebar__nav-item .lane-rail {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  bottom: 6px;
+  height: auto;
+}
+
+.sidebar__footer {
+  margin-top: auto;
+  padding: var(--space-3) var(--space-2) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.sidebar__footer-note {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}

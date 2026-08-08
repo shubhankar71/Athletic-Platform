@@ -1,0 +1,135 @@
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 5, 6, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 40;
+  animation: fade-in var(--dur-med) var(--ease-out);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drawer {
+  width: 420px;
+  max-width: 90vw;
+  height: 100%;
+  background: var(--bg-1);
+  border-left: 1px solid var(--border-strong);
+  padding: var(--space-5);
+  overflow-y: auto;
+  animation: slide-in var(--dur-med) var(--ease-out);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.drawer__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.drawer__name {
+  font-size: 22px;
+  margin-top: 4px;
+}
+
+.drawer__event {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.drawer__close {
+  background: var(--bg-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.drawer__close:hover {
+  color: var(--text-primary);
+}
+
+.drawer__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.drawer__stat-value {
+  font-size: 20px;
+  margin-top: 4px;
+  color: var(--text-primary);
+}
+
+.drawer__stat-value--label {
+  text-transform: capitalize;
+  font-size: 15px;
+}
+
+.drawer__section {
+  margin-bottom: var(--space-5);
+}
+
+.drawer__section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.drawer__summary {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.drawer__focus-list {
+  margin: var(--space-3) 0 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.drawer__focus-list li {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.drawer__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
