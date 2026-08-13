@@ -28,7 +28,7 @@ src/
                           payload shape. Components only ever import from
                           here — never from data/mockData.js directly.
                           Swapping to a real backend means editing ONLY
-                          this file (fetch() calls in place of resolveAfter()).
+                          this file (fetch() calls in place of resolveAfter())..
 
   data/mockData.js        Static fixtures used by mockApi.js.
 
