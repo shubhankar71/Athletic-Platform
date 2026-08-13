@@ -6,13 +6,13 @@ import './AuthModal.css';
 export default function AuthModal({ isOpen, onClose, initialMode = 'login', onNavigate }) {
   const { login, register } = useAuth();
   const [mode, setMode] = useState(initialMode); // 'login' or 'register'
-  
+
   // Form State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('athlete');
-  
+
   // UI status state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
