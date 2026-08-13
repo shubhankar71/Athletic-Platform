@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import { CURRENT_USER_BY_ROLE } from "../data/mockData.js";
+import { useAuth } from "./AuthContext.jsx";
 
 export const ROLES = {
   ATHLETE: "athlete",
@@ -9,26 +10,28 @@ export const ROLES = {
 
 const RoleContext = createContext(null);
 
-/**
- * Owns the "which dashboard am I looking at" state for the whole app.
- *
- * In production this shouldn't be a free client-side switch — it should be
- * derived from the authenticated user's role coming back from FastAPI
- * (GET /me). It's exposed as a switcher here purely so the prototype can
- * demo all three dashboards in one session. Swap `setRole` for a real
- * session/auth hook later; nothing downstream needs to change since every
- * consumer reads role + user from this context, never from local state.
- */
 export function RoleProvider({ children }) {
-  const [role, setRole] = useState(ROLES.ATHLETE);
+  const auth = useAuth();
+  const [demoRole, setDemoRole] = useState(ROLES.ATHLETE);
+
+  // If user is authenticated in AuthContext, prioritize authenticated user & role
+  const activeRole = auth.isAuthenticated ? auth.role : demoRole;
+  const activeUser = auth.isAuthenticated ? auth.user : CURRENT_USER_BY_ROLE[activeRole];
 
   const value = useMemo(
     () => ({
-      role,
-      setRole,
-      user: CURRENT_USER_BY_ROLE[role],
+      role: activeRole,
+      setRole: (newRole) => {
+        if (auth.isAuthenticated) {
+          console.warn(`User is logged in as '${auth.role}'. Switch account to view another role.`);
+        }
+        setDemoRole(newRole);
+      },
+      user: activeUser,
+      isAuthenticated: auth.isAuthenticated,
+      logout: auth.logout,
     }),
-    [role]
+    [activeRole, activeUser, auth]
   );
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;

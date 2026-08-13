@@ -118,3 +118,75 @@
   color: var(--text-tertiary);
   margin-top: 4px;
 }
+
+.sidebar__route-badge {
+  margin-left: auto;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #94a3b8;
+  font-family: var(--font-mono, monospace);
+}
+
+.sidebar__auth-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar__badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar__badge.authenticated {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.sidebar__badge.unauthenticated {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.sidebar__auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar__auth-btn.login {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+}
+
+.sidebar__auth-btn.login:hover {
+  background: #1d4ed8;
+}
+
+.sidebar__auth-btn.logout {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.sidebar__auth-btn.logout:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
