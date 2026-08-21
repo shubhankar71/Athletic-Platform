@@ -1,0 +1,28 @@
+dataset:
+  sequence_length: 30
+  num_features: 528
+  num_classes: 6
+  target_classes:
+    0: "Block"
+    1: "Cut"
+    2: "Glance"
+    3: "Hook"
+    4: "OffDrive"
+    5: "OnDrive"
+
+pose:
+  model_complexity: 1
+  min_detection_confidence: 0.3
+  min_tracking_confidence: 0.3
+  static_image_mode: false
+
+scoring_weights:
+  head: 0.15
+  shoulders: 0.10
+  elbows: 0.10
+  hands: 0.10
+  hips: 0.10
+  knees: 0.10
+  feet: 0.15
+  balance: 0.10
+  follow_through: 0.10

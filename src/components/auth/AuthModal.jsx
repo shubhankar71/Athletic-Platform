@@ -65,7 +65,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onNa
   return (
     <div className="auth-modal__overlay">
       <div className="auth-modal__content">
-        <button className="auth-modal__close" onClick={onClose} aria-label="Close">
+        <button type="button" className="auth-modal__close" onClick={onClose} aria-label="Close">
           <X size={20} />
         </button>
 
@@ -85,18 +85,21 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onNa
         {/* Tab Switcher */}
         <div className="auth-modal__tabs">
           <button
+            type="button"
             className={`auth-modal__tab ${mode === 'login' ? 'active' : ''}`}
             onClick={() => handleModeSwitch('login')}
           >
             <LogIn size={16} /> Sign In
           </button>
           <button
+            type="button"
             className={`auth-modal__tab ${mode === 'register' ? 'active' : ''}`}
             onClick={() => handleModeSwitch('register')}
           >
             <UserPlus size={16} /> Register
           </button>
         </div>
+
 
         {error && (
           <div className="auth-modal__alert error">

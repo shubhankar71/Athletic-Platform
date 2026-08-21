@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState, useCallback } from "react";
 import { CURRENT_USER_BY_ROLE } from "../data/mockData.js";
 import { useAuth } from "./AuthContext.jsx";
 
@@ -18,20 +18,25 @@ export function RoleProvider({ children }) {
   const activeRole = auth.isAuthenticated ? auth.role : demoRole;
   const activeUser = auth.isAuthenticated ? auth.user : CURRENT_USER_BY_ROLE[activeRole];
 
+  const setRole = useCallback(
+    (newRole) => {
+      if (auth.isAuthenticated) {
+        console.warn(`User is logged in as '${auth.role}'. Switch account to view another role.`);
+      }
+      setDemoRole((prev) => (prev !== newRole ? newRole : prev));
+    },
+    [auth.isAuthenticated, auth.role]
+  );
+
   const value = useMemo(
     () => ({
       role: activeRole,
-      setRole: (newRole) => {
-        if (auth.isAuthenticated) {
-          console.warn(`User is logged in as '${auth.role}'. Switch account to view another role.`);
-        }
-        setDemoRole(newRole);
-      },
+      setRole,
       user: activeUser,
       isAuthenticated: auth.isAuthenticated,
       logout: auth.logout,
     }),
-    [activeRole, activeUser, auth]
+    [activeRole, activeUser, setRole, auth.isAuthenticated, auth.logout]
   );
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
@@ -42,3 +47,4 @@ export function useRole() {
   if (!ctx) throw new Error("useRole must be used within a RoleProvider");
   return ctx;
 }
+

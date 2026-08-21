@@ -1,5 +1,10 @@
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User.js');
+
+// In-memory fallback user store for dev/testing when MongoDB is not active locally
+const inMemoryUsers = new Map();
 
 /**
  * Generate JWT Token containing userId and role
@@ -11,30 +16,14 @@ const generateToken = (id, role) => {
 };
 
 /**
- * Helper to get default dashboard route based on role
- */
-const getDashboardRoute = (role) => {
-  switch (role) {
-    case 'coach':
-      return '/dashboard/coach';
-    case 'admin':
-      return '/dashboard/admin';
-    case 'athlete':
-    default:
-      return '/dashboard/athlete';
-  }
-};
-
-/**
- * @desc    Register a new user
+ * @desc    Register a new user with selected role (athlete or coach)
  * @route   POST /api/auth/register
  * @access  Public
  */
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role: requestedRole } = req.body;
 
-    // Validation: Check required fields
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -42,36 +31,48 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Validate role if provided. Admins cannot be created via registration.
-    if (role && !['athlete', 'coach'].includes(role)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid role. Registration supports only athlete or coach roles',
-      });
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Validate requested role
+    let userRole = 'athlete';
+    if (requestedRole) {
+      const cleanRole = String(requestedRole).toLowerCase().trim();
+      if (cleanRole === 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin account registration is strictly restricted.',
+        });
+      }
+      if (['athlete', 'coach'].includes(cleanRole)) {
+        userRole = cleanRole;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid role requested. Allowed roles are: athlete, coach',
+        });
+      }
     }
 
-    // Check if user already exists
-    const userExists = await User.findOne({ email: email.toLowerCase() });
-    if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: 'User already exists with this email',
+    // Check if DB is connected
+    if (mongoose.connection.readyState === 1) {
+      const userExists = await User.findOne({ email: cleanEmail });
+      if (userExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this email',
+        });
+      }
+
+      const user = await User.create({
+        name: name.trim(),
+        email: cleanEmail,
+        password,
+        role: userRole,
       });
-    }
 
-    // Create user (admin role is not allowed via public registration)
-    const user = await User.create({
-      name,
-      email: email.toLowerCase(),
-      password,
-      role: role || 'athlete',
-    });
+      const token = generateToken(user._id.toString(), user.role);
 
-    if (user) {
-      const token = generateToken(user._id, user.role);
-      const redirectUrl = getDashboardRoute(user.role);
-
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: 'User registered successfully',
         token,
@@ -82,12 +83,41 @@ const registerUser = async (req, res) => {
           role: user.role,
           createdAt: user.createdAt,
         },
-        redirectUrl,
       });
     } else {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid user data received',
+      // In-memory fallback mode with valid 24-character hex ObjectId
+      if (inMemoryUsers.has(cleanEmail)) {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this email',
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const mockId = new mongoose.Types.ObjectId().toHexString();
+      const mockUser = {
+        _id: mockId,
+        name: name.trim(),
+        email: cleanEmail,
+        password: hashedPassword,
+        role: userRole,
+        createdAt: new Date(),
+      };
+
+      inMemoryUsers.set(cleanEmail, mockUser);
+      const token = generateToken(mockUser._id, mockUser.role);
+
+      return res.status(201).json({
+        success: true,
+        message: 'User registered successfully (In-Memory)',
+        token,
+        user: {
+          _id: mockUser._id,
+          name: mockUser.name,
+          email: mockUser.email,
+          role: mockUser.role,
+          createdAt: mockUser.createdAt,
+        },
       });
     }
   } catch (error) {
@@ -100,6 +130,7 @@ const registerUser = async (req, res) => {
   }
 };
 
+
 /**
  * @desc    Authenticate user & get token
  * @route   POST /api/auth/login
@@ -109,7 +140,6 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation: Check email & password
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -117,41 +147,72 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.toLowerCase().trim();
 
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
+    if (mongoose.connection.readyState === 1) {
+      const user = await User.findOne({ email: cleanEmail });
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password',
+        });
+      }
+
+      const isMatch = await user.matchPassword(password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password',
+        });
+      }
+
+      const token = generateToken(user._id.toString(), user.role);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Logged in successfully',
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt,
+        },
+      });
+    } else {
+      // In-memory fallback check
+      const memUser = inMemoryUsers.get(cleanEmail);
+      if (!memUser) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password',
+        });
+      }
+
+      const isMatch = await bcrypt.compare(password, memUser.password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password',
+        });
+      }
+
+      const token = generateToken(memUser._id, memUser.role);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Logged in successfully',
+        token,
+        user: {
+          _id: memUser._id,
+          name: memUser.name,
+          email: memUser.email,
+          role: memUser.role,
+          createdAt: memUser.createdAt,
+        },
       });
     }
-
-    // Check password
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
-    }
-
-    const token = generateToken(user._id, user.role);
-    const redirectUrl = getDashboardRoute(user.role);
-
-    res.status(200).json({
-      success: true,
-      message: 'Logged in successfully',
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-      },
-      redirectUrl,
-    });
   } catch (error) {
     console.error(`Login Error: ${error.message}`);
     res.status(500).json({
@@ -163,24 +224,40 @@ const loginUser = async (req, res) => {
 };
 
 /**
+ * @desc    Logout user
+ * @route   POST /api/auth/logout
+ * @access  Public / Private
+ */
+const logoutUser = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: 'Logged out successfully',
+  });
+};
+
+/**
  * @desc    Get current logged in user profile
  * @route   GET /api/auth/me
  * @access  Private
  */
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
-    if (!user) {
-      return res.status(404).json({
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        message: 'User not found',
+        message: 'Authentication required.',
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      user,
-      redirectUrl: getDashboardRoute(user.role),
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+        createdAt: req.user.createdAt,
+      },
     });
   } catch (error) {
     console.error(`GetMe Error: ${error.message}`);
@@ -192,9 +269,18 @@ const getMe = async (req, res) => {
   }
 };
 
+const getDashboardRoute = (role) => {
+  if (role === 'admin') return '/dashboard/admin';
+  if (role === 'coach') return '/dashboard/coach';
+  return '/dashboard/athlete';
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
   getMe,
   getDashboardRoute,
+  inMemoryUsers,
 };
+
