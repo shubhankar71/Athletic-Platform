@@ -60,7 +60,28 @@ def analyze_video(video_path):
     predictor = CricketStrokePredictor() # Uses relative model directory
     pred_res = predictor.predict(norm_seq)
 
+    # ML INFERENCE DEBUG BOX
+    print("=" * 50)
+    print("ML INFERENCE DEBUG")
+    print("=" * 50)
+    print(f"Video Path: {video_path}")
+    print(f"Video Size: {meta.get('file_size_bytes', 0)} bytes")
+    print(f"Video SHA256 Hash: {meta.get('video_hash', 'N/A')}")
+    print(f"Resolution: {meta.get('width', 0)}x{meta.get('height', 0)} | FPS: {meta.get('fps', 0)} | Frames: {meta.get('total_frames', 0)}")
+    print(f"Pose frames detected: {meta.get('detected_frames', 0)} / {meta.get('total_frames', 0)} (Rate: {round(meta.get('detection_rate', 0)*100, 1)}%)")
+    print(f"Feature matrix shape: {seq_528.shape}")
+    print(f"Feature mean: {float(np.mean(seq_528)):.4f} | std: {float(np.std(seq_528)):.4f} | min: {float(np.min(seq_528)):.4f} | max: {float(np.max(seq_528)):.4f}")
+    print(f"Normalized mean: {float(np.mean(norm_seq)):.4f} | std: {float(np.std(norm_seq)):.4f}")
+    print("Prediction probabilities:")
+    for stroke_cls, prob_val in pred_res["confidence_breakdown"].items():
+        print(f"  {stroke_cls:10s}: {prob_val:.4f} ({prob_val*100:.2f}%)")
+    print(f"Predicted Class ID: {pred_res.get('class_id', 'N/A')}")
+    print(f"Predicted Shot: {pred_res['predicted_stroke']}")
+    print(f"Confidence: {pred_res['confidence']*100:.2f}%")
+    print("=" * 50)
+
     # 7. Body Position Analysis
+
     # Resample 3D landmarks to 30 frames for spatial analysis
     landmarks_30 = sb.build_sequence(landmarks.reshape(len(landmarks), -1)).reshape(30, 33, 4)
     analyzer = TechniqueAnalyzer()

@@ -71,8 +71,10 @@ class CricketStrokePredictor:
         confidence_breakdown = {self.class_names[i]: float(probs[i]) for i in range(len(self.class_names))}
 
         return {
+            "class_id": pred_idx,
             "predicted_stroke": predicted_stroke,
             "confidence": float(probs[pred_idx]),
             "confidence_breakdown": confidence_breakdown,
             "attention_weights": attn_weights
         }
+

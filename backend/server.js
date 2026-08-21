@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
+
 
 // Load environment variables from parent root .env and local backend .env reliably
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -28,11 +30,19 @@ const startServer = async () => {
     app.use(cors());
     app.use(express.json());
 
+    // Serve local video uploads directory statically if present
+    const uploadsDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    app.use('/uploads', express.static(uploadsDir));
+
     // Routes
     app.use('/api/auth', authRoutes);
     app.use('/api/upload', uploadRoutes);
     app.use('/api/analysis', analysisRoutes);
     app.use('/api/admin', adminRoutes);
+
 
     // Basic test route
     app.get('/', (req, res) => {
