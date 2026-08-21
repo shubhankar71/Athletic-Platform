@@ -1,0 +1,19 @@
+{
+    "best_model_name": "BiLSTM_Attention",
+    "input_shape": [
+        30,
+        528
+    ],
+    "feature_count": 528,
+    "sequence_length": 30,
+    "class_names": [
+        "Block",
+        "Cut",
+        "Glance",
+        "Hook",
+        "OffDrive",
+        "OnDrive"
+    ],
+    "val_macro_f1": 0.5533577533577533,
+    "val_accuracy": 0.5238095238095238
+}

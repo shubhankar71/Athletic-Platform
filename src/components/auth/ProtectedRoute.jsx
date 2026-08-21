@@ -1,15 +1,14 @@
 import React from 'react';
-import { useAuth, getDashboardRoute } from '../../context/AuthContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { ShieldAlert, LogIn, Lock } from 'lucide-react';
 import './ProtectedRoute.css';
 
 /**
- * ProtectedRoute Component / Higher-Order Guard
+ * ProtectedRoute Guard Component
  * 
- * @param {Object} props
- * @param {Array<string>} props.allowedRoles - List of allowed roles e.g. ['athlete', 'coach']
- * @param {React.ReactNode} props.children - Component to render if authorized
- * @param {Function} props.onOpenLogin - Optional callback to trigger login modal
+ * Enforces strict access rules:
+ * 1. Unauthenticated users -> 401 Authentication Required
+ * 2. Authenticated non-athletes trying to access athlete features (or non-admins trying admin) -> 403 Forbidden
  */
 export default function ProtectedRoute({ allowedRoles = [], children, onOpenLogin }) {
   const { user, isAuthenticated, isLoading, role } = useAuth();
@@ -18,12 +17,12 @@ export default function ProtectedRoute({ allowedRoles = [], children, onOpenLogi
     return (
       <div className="protected-route__loading">
         <div className="protected-route__spinner"></div>
-        <p>Verifying role-based permissions...</p>
+        <p>Verifying authentication & role permissions...</p>
       </div>
     );
   }
 
-  // Case 1: Unauthenticated
+  // 1. Unauthenticated -> 401 "Authentication required."
   if (!isAuthenticated) {
     return (
       <div className="protected-route__container protected-route__unauthorized">
@@ -31,10 +30,9 @@ export default function ProtectedRoute({ allowedRoles = [], children, onOpenLogi
           <div className="protected-route__icon-wrapper icon-lock">
             <Lock className="protected-route__icon" />
           </div>
+          <span className="protected-route__badge">401 Unauthorized</span>
           <h2>Authentication Required</h2>
-          <p>
-            You must be logged in to access this page. Please sign in with your account credentials.
-          </p>
+          <p>Authentication required. Please sign in with your athlete credentials to access video analysis.</p>
           {onOpenLogin && (
             <button className="protected-route__btn primary" onClick={onOpenLogin}>
               <LogIn size={18} />
@@ -46,9 +44,12 @@ export default function ProtectedRoute({ allowedRoles = [], children, onOpenLogi
     );
   }
 
-  // Case 2: Role Authorization Check
+  // 2. Role Restriction -> 403 "Video analysis is available only to athletes." for video analysis, or "Admin access required."
   if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-    const targetRoute = getDashboardRoute(role);
+    const isAthleteRoute = allowedRoles.includes('athlete');
+    const forbiddenMessage = isAthleteRoute
+      ? "Video analysis is available only to athletes."
+      : "Admin dashboard is available only to administrators.";
 
     return (
       <div className="protected-route__container protected-route__forbidden">
@@ -56,18 +57,16 @@ export default function ProtectedRoute({ allowedRoles = [], children, onOpenLogi
           <div className="protected-route__icon-wrapper icon-shield">
             <ShieldAlert className="protected-route__icon" />
           </div>
-          <span className="protected-route__badge">403 Forbidden</span>
-          <h2>Unauthorized Role Access</h2>
-          <p>
-            Your current role (<strong>{role.toUpperCase()}</strong>) does not have authorization to view this area.
+          <span className="protected-route__badge" style={{ backgroundColor: "rgba(230, 57, 70, 0.2)", color: "#e63946" }}>
+            403 Forbidden
+          </span>
+          <h2>Access Denied</h2>
+          <p style={{ fontSize: "1.1rem", fontWeight: "600", color: "#e63946", margin: "0.5rem 0" }}>
+            {forbiddenMessage}
           </p>
-          <div className="protected-route__info">
-            <p>Required Roles: <span>{allowedRoles.join(', ')}</span></p>
-            <p>Your Role: <span className="role-tag">{role}</span></p>
-          </div>
-          <a href={targetRoute} className="protected-route__btn secondary">
-            Go to My Dashboard ({targetRoute})
-          </a>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+            Your account role is <strong>{role.toUpperCase()}</strong>.
+          </p>
         </div>
       </div>
     );

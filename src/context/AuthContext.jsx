@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { loginApi, registerApi, getMeApi } from '../api/authApi.js';
 
 export const ROLES = {
@@ -26,8 +26,11 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('authToken') || null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const isValidRole = user?.role && [ROLES.ATHLETE, ROLES.COACH, ROLES.ADMIN].includes(user.role);
+  const isAuthenticated = !!token && !!user && isValidRole;
+  const role = user?.role || null;
 
-  const role = user?.role || ROLES.ATHLETE;
+
 
   // On initial mount, verify token if present in localStorage
   useEffect(() => {
@@ -58,7 +61,7 @@ export function AuthProvider({ children }) {
     initAuth();
   }, []);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     setAuthError(null);
     try {
       const response = await loginApi({ email, password });
@@ -76,9 +79,9 @@ export function AuthProvider({ children }) {
       setAuthError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const register = async (name, email, password, roleChoice) => {
+  const register = useCallback(async (name, email, password, roleChoice) => {
     setAuthError(null);
     try {
       const response = await registerApi({
@@ -101,27 +104,31 @@ export function AuthProvider({ children }) {
       setAuthError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('authToken');
     setToken(null);
     setUser(null);
     setAuthError(null);
-  };
+  }, []);
 
-  const value = {
-    user,
-    token,
-    role,
-    isAuthenticated: !!token && !!user,
-    isLoading,
-    authError,
-    login,
-    register,
-    logout,
-    getDashboardRoute,
-  };
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      role,
+      isAuthenticated,
+      isLoading,
+      authError,
+      login,
+      register,
+      logout,
+      getDashboardRoute,
+    }),
+    [user, token, role, isAuthenticated, isLoading, authError, login, register, logout]
+  );
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -133,3 +140,4 @@ export function useAuth() {
   }
   return context;
 }
+

@@ -1,73 +1,110 @@
-import { Activity, ShieldCheck, Users, Zap, LogIn, LogOut, User } from "lucide-react";
-import { ROLES, useRole } from "../../context/RoleContext.jsx";
+import React from "react";
+import { Activity, ShieldCheck, Zap, LogIn, LogOut, User, FileVideo, BarChart3, Settings } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { ROLES, useRole } from "../../context/RoleContext.jsx";
 import "./Sidebar.css";
 
-const ROLE_SWITCH_ITEMS = [
-  { role: ROLES.ATHLETE, label: "Athlete", icon: Zap, route: "/dashboard/athlete" },
-  { role: ROLES.COACH, label: "Coach", icon: Users, route: "/dashboard/coach" },
-  { role: ROLES.ADMIN, label: "Admin", icon: ShieldCheck, route: "/dashboard/admin" },
-];
-
 export default function Sidebar({ onOpenAuthModal }) {
-  const { role, setRole, user } = useRole();
-  const { isAuthenticated, logout, user: authUser } = useAuth();
+  const { user: authUser, isAuthenticated, logout, role: currentRole } = useAuth();
+  const { setRole } = useRole();
 
-  const activeUser = authUser || user;
+  const activeUser = authUser;
   const initials = activeUser?.name
     ? activeUser.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-    : "SP";
+    : "GU";
+
+  const handleRoleSelect = (r) => {
+    setRole(r);
+  };
 
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
-        <Activity size={20} strokeWidth={2.5} color="var(--accent-teal)" />
+        <Activity size={22} strokeWidth={2.5} color="var(--accent-teal)" />
         <span className="sidebar__brand-name">FieldSignal</span>
       </div>
 
+      {/* User Info Header */}
       <div className="sidebar__user">
         <div className="sidebar__avatar">{initials}</div>
         <div>
-          <p className="sidebar__user-name">{activeUser?.name || "Guest User"}</p>
+          <p className="sidebar__user-name">{activeUser?.name || "Guest Visitor"}</p>
           <p className="sidebar__user-meta">
-            {activeUser?.email || (activeUser?.sport || activeUser?.title)}
+            {activeUser ? `${activeUser.email} (${activeUser.role.toUpperCase()})` : "Unauthenticated"}
           </p>
         </div>
       </div>
 
-      <nav className="sidebar__switcher" aria-label="Dashboard view switcher">
+      {/* Dynamic Navigation Items */}
+      <nav className="sidebar__switcher" aria-label="Main Navigation">
         <p className="eyebrow sidebar__switcher-label">
-          {isAuthenticated ? "Current RBAC Role" : "Role Dashboard Routes"}
+          {isAuthenticated ? `${currentRole.toUpperCase()} NAVIGATION` : "PLATFORM ACCESS"}
         </p>
-        {ROLE_SWITCH_ITEMS.map((item) => {
-          const isActive = item.role === role;
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.role}
-              className={`sidebar__nav-item${isActive ? " sidebar__nav-item--active" : ""}`}
-              onClick={() => setRole(item.role)}
-            >
-              {isActive && (
-                <span className="lane-rail" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                </span>
-              )}
-              <Icon size={16} strokeWidth={2.25} />
-              <span>{item.label}</span>
-              <span className="sidebar__route-badge">{item.route}</span>
+
+        {/* Guest View */}
+        {!isAuthenticated && (
+          <>
+            <button className="sidebar__nav-item sidebar__nav-item--active" onClick={onOpenAuthModal}>
+              <LogIn size={16} />
+              <span>Sign In / Register</span>
             </button>
-          );
-        })}
+          </>
+        )}
+
+        {/* Athlete Navigation */}
+        {isAuthenticated && currentRole === ROLES.ATHLETE && (
+          <>
+            <button
+              className="sidebar__nav-item sidebar__nav-item--active"
+              onClick={() => handleRoleSelect(ROLES.ATHLETE)}
+            >
+              <Zap size={16} color="var(--accent-teal)" />
+              <span>Athlete Dashboard</span>
+            </button>
+            <button
+              className="sidebar__nav-item"
+              onClick={() => handleRoleSelect(ROLES.ATHLETE)}
+            >
+              <FileVideo size={16} color="var(--accent-teal)" />
+              <span>Video Analysis</span>
+            </button>
+            <button
+              className="sidebar__nav-item"
+              onClick={() => handleRoleSelect(ROLES.ATHLETE)}
+            >
+              <BarChart3 size={16} color="var(--accent-teal)" />
+              <span>My Analyses</span>
+            </button>
+          </>
+        )}
+
+        {/* Admin Navigation (STRICTLY NO Video Analysis!) */}
+        {isAuthenticated && currentRole === ROLES.ADMIN && (
+          <>
+            <button
+              className="sidebar__nav-item sidebar__nav-item--active"
+              onClick={() => handleRoleSelect(ROLES.ADMIN)}
+            >
+              <ShieldCheck size={16} color="var(--accent-coral, #e63946)" />
+              <span>Admin Dashboard</span>
+            </button>
+            <button
+              className="sidebar__nav-item"
+              onClick={() => handleRoleSelect(ROLES.ADMIN)}
+            >
+              <Settings size={16} color="var(--accent-coral, #e63946)" />
+              <span>System Settings</span>
+            </button>
+          </>
+        )}
       </nav>
 
+      {/* Auth Status Footer */}
       <div className="sidebar__footer">
         {isAuthenticated ? (
           <div className="sidebar__auth-status">
             <div className="sidebar__badge authenticated">
-              <User size={12} /> Logged in as <strong>{authUser?.role}</strong>
+              <User size={12} /> Logged in: <strong>{activeUser?.role}</strong>
             </div>
             <button className="sidebar__auth-btn logout" onClick={logout}>
               <LogOut size={16} /> Sign Out
@@ -76,10 +113,10 @@ export default function Sidebar({ onOpenAuthModal }) {
         ) : (
           <div className="sidebar__auth-status">
             <div className="sidebar__badge unauthenticated">
-              Role Auth Active
+              Authentication Required
             </div>
             <button className="sidebar__auth-btn login" onClick={onOpenAuthModal}>
-              <LogIn size={16} /> Sign In / Register
+              <LogIn size={16} /> Sign In
             </button>
           </div>
         )}

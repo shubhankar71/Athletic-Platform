@@ -1,2 +1,15 @@
 node_modules
 .env
+.env.local
+.env.*.local
+*.env
+/dist
+venv
+.venv
+ml/venv/
+__pycache__/
+*.pyc
+ml/reports/generated/
+ml/static/visualizations/
+
+

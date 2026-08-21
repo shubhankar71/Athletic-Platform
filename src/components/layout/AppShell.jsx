@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ROLES, useRole } from "../../context/RoleContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import Sidebar from "./Sidebar.jsx";
 import AthleteDashboard from "../athlete/AthleteDashboard.jsx";
 import CoachDashboard from "../coach/CoachDashboard.jsx";
@@ -16,13 +17,22 @@ const DASHBOARDS = {
 
 export default function AppShell() {
   const { role, setRole } = useRole();
+  const { user, isAuthenticated } = useAuth();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
-  const ActiveDashboard = DASHBOARDS[role] || AthleteDashboard;
+  // Synchronize active role view with authenticated user's actual role from AuthContext
+  useEffect(() => {
+    if (isAuthenticated && user?.role && role !== user.role) {
+      setRole(user.role);
+    }
+  }, [isAuthenticated, user?.role, role, setRole]);
 
-  // Handle post-login programmatic redirection based on role
+  const ActiveDashboard = DASHBOARDS[role] || AthleteDashboard;
+  const targetAllowedRole = [role];
+
+
   const handleNavigatePostAuth = (redirectUrl, userRole) => {
-    if (userRole && DASHBOARDS[userRole]) {
+    if (userRole) {
       setRole(userRole);
     }
   };
@@ -32,10 +42,10 @@ export default function AppShell() {
       <Sidebar onOpenAuthModal={() => setIsAuthOpen(true)} />
       <main className="app-shell__content">
         <ProtectedRoute
-          allowedRoles={[role]}
+          allowedRoles={targetAllowedRole}
           onOpenLogin={() => setIsAuthOpen(true)}
         >
-          <ActiveDashboard />
+          <ActiveDashboard onOpenAuthModal={() => setIsAuthOpen(true)} />
         </ProtectedRoute>
       </main>
 
