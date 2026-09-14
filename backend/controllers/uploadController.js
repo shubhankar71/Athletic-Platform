@@ -84,32 +84,18 @@ const uploadVideoToCloudinary = async (req, res) => {
         duration: result.duration,
       });
     } catch (cloudinaryError) {
-      console.warn(`[Cloudinary API Warning] Upload failed: ${cloudinaryError.message}. Storing video in local uploads directory.`);
-      
-      const uploadsDir = path.join(__dirname, '../uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-
-      const uniqueFilename = `video_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${fileExt}`;
-      const destPath = path.join(uploadsDir, uniqueFilename);
-
-      fs.copyFileSync(filePath, destPath);
+      console.error("Cloudinary upload error details:", {
+        message: cloudinaryError.message,
+        http_code: cloudinaryError.http_code,
+        name: cloudinaryError.name
+      });
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
-
-      const host = req.get('host') || '127.0.0.1:5000';
-      const protocol = req.protocol || 'http';
-      const localUrl = `${protocol}://${host}/uploads/${uniqueFilename}`;
-
-      return res.status(200).json({
-        success: true,
-        secure_url: localUrl,
-        public_id: `local_${uniqueFilename}`,
-        resource_type: 'video',
-        duration: 15.0,
-        message: `Video saved to local uploads storage (${cloudinaryError.message})`,
+      return res.status(400).json({
+        success: false,
+        message: `Cloudinary upload failed: ${cloudinaryError.message}`,
+        error: cloudinaryError.message,
       });
     }
   } catch (error) {

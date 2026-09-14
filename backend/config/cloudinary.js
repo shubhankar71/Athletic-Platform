@@ -5,8 +5,9 @@ const configureCloudinary = () => {
   const apiKey = process.env.CLOUDINARY_API_KEY ? process.env.CLOUDINARY_API_KEY.trim() : '';
   const apiSecret = process.env.CLOUDINARY_API_SECRET ? process.env.CLOUDINARY_API_SECRET.trim() : '';
 
-  // SAFE diagnostic logging required by project rules (NEVER print actual key/secret values)
+  // SAFE diagnostic logging requested by user (NEVER print actual API secret)
   console.log(`CLOUDINARY_CLOUD_NAME loaded: ${cloudName ? 'YES' : 'NO'}`);
+  console.log("Cloudinary cloud name:", JSON.stringify(process.env.CLOUDINARY_CLOUD_NAME), "length:", process.env.CLOUDINARY_CLOUD_NAME?.length);
   console.log(`CLOUDINARY_API_KEY loaded: ${apiKey ? 'YES' : 'NO'}`);
   console.log(`CLOUDINARY_API_SECRET loaded: ${apiSecret ? 'YES' : 'NO'}`);
 
@@ -23,6 +24,13 @@ const configureCloudinary = () => {
       secure: true,
     });
   }
+
+  const config = cloudinary.config();
+  console.log("Cloudinary runtime config:", {
+    cloud_name: config.cloud_name,
+    api_key_loaded: !!config.api_key,
+    api_secret_loaded: !!config.api_secret
+  });
 };
 
 module.exports = { cloudinary, configureCloudinary };

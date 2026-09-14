@@ -5,9 +5,18 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 
 
-// Load environment variables from parent root .env and local backend .env reliably
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-dotenv.config({ path: path.resolve(__dirname, './.env') });
+// Load environment variables reliably from workspace root, parent, and local backend .env files
+// Priority: Root -> Parent -> Local Backend (.env in backend directory takes highest precedence with override: true)
+const envPaths = [
+  path.resolve(__dirname, '../../.env'),
+  path.resolve(__dirname, '../.env'),
+  path.resolve(__dirname, './.env')
+];
+envPaths.forEach(envPath => {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath, override: true });
+  }
+});
 
 const connectDB = require('./config/db.js');
 const seedAdmin = require('./config/seedAdmin.js');
