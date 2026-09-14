@@ -19,6 +19,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background-color var(--dur-med) var(--ease-out), color var(--dur-med) var(--ease-out);
 }
 
 h1,
@@ -102,6 +103,7 @@ a {
   border-radius: var(--radius-md);
   padding: 8px 12px;
   font-size: 12px;
+  color: var(--text-primary);
 }
 .chart-tooltip__label {
   font-family: var(--font-mono);

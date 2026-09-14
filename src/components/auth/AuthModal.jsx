@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth, getDashboardRoute } from '../../context/AuthContext.jsx';
 import { X, LogIn, UserPlus, Shield, UserCheck, AlertCircle } from 'lucide-react';
+import ThemeToggle from '../ui/ThemeToggle.jsx';
 import './AuthModal.css';
 
 export default function AuthModal({ isOpen, onClose, initialMode = 'login', onNavigate }) {
@@ -65,9 +66,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onNa
   return (
     <div className="auth-modal__overlay">
       <div className="auth-modal__content">
-        <button type="button" className="auth-modal__close" onClick={onClose} aria-label="Close">
-          <X size={20} />
-        </button>
+        <div className="auth-modal__top-bar">
+          <ThemeToggle compact={true} />
+          <button type="button" className="auth-modal__close" onClick={onClose} aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
 
         <div className="auth-modal__header">
           <div className="auth-modal__logo">

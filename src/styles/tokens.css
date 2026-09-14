@@ -1,5 +1,6 @@
-:root {
-  /* ---- Surface & ground ---- */
+:root,
+[data-theme="dark"] {
+  /* ---- Surface & ground (Dark) ---- */
   --bg-0: #08090b;       /* app ground */
   --bg-1: #101317;       /* sidebar / recessed panels */
   --bg-2: #15181d;       /* card surface */
@@ -7,7 +8,7 @@
   --border-subtle: #21252c;
   --border-strong: #2c313a;
 
-  /* ---- Text ---- */
+  /* ---- Text (Dark) ---- */
   --text-primary: #f3f5f7;
   --text-secondary: #9aa3b2;
   --text-tertiary: #5c6472;
@@ -49,4 +50,35 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 120ms;
   --dur-med: 220ms;
+}
+
+[data-theme="light"] {
+  /* ---- Surface & ground (Light) ---- */
+  --bg-0: #f4f6f8;       /* app ground: soft off-white/light gray */
+  --bg-1: #ffffff;       /* sidebar / recessed panels: crisp white */
+  --bg-2: #ffffff;       /* card surface: pure white */
+  --bg-3: #eef2f6;       /* raised / hover surface */
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  /* ---- Text (Light) ---- */
+  --text-primary: #0f172a;   /* slate 900 */
+  --text-secondary: #475569; /* slate 600 */
+  --text-tertiary: #64748b;  /* slate 500 */
+
+  /* ---- Accent: performance / AI (lane-teal) ---- */
+  --accent-teal: #0d9488;     /* teal 600 - rich readable teal */
+  --accent-teal-dim: #99f6e4; /* teal 200 */
+  --accent-teal-wash: rgba(13, 148, 136, 0.12);
+
+  /* ---- Accent: opportunity / energy (track-coral) ---- */
+  --accent-coral: #ea580c;    /* orange 600 - rich readable coral */
+  --accent-coral-dim: #fed7aa;/* orange 200 */
+  --accent-coral-wash: rgba(234, 88, 12, 0.12);
+
+  /* ---- Signal ---- */
+  --signal-red: #dc2626;
+  --signal-red-wash: rgba(220, 38, 38, 0.12);
+  --signal-amber: #d97706;
+  --signal-amber-wash: rgba(217, 119, 6, 0.12);
 }

@@ -29,6 +29,42 @@ const userSchema = new mongoose.Schema(
       enum: ['athlete', 'coach', 'admin'],
       default: 'athlete',
     },
+    battingRole: {
+      type: String,
+      default: 'Opening Batter',
+      trim: true,
+    },
+    battingStyle: {
+      type: String,
+      default: 'Right-Handed',
+      trim: true,
+    },
+    team: {
+      type: String,
+      default: 'Delhi Cricket Club',
+      trim: true,
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    banType: {
+      type: String,
+      enum: ['temporary', 'permanent', null],
+      default: null,
+    },
+    banUntil: {
+      type: Date,
+      default: null,
+    },
+    banReason: {
+      type: String,
+      default: '',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
