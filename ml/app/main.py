@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field, HttpUrl
 
 # Ensure parent directory is in sys.path so 'ml' package can be imported properly
@@ -88,6 +88,10 @@ def cleanup_file(file_path: str):
             os.remove(file_path)
     except Exception:
         pass
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
 
 @app.get("/")
 @app.get("/api/ml/health")
