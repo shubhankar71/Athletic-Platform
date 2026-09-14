@@ -26,6 +26,10 @@ const authRoutes = require('./routes/authRoutes.js');
 const uploadRoutes = require('./routes/uploadRoutes.js');
 const analysisRoutes = require('./routes/analysisRoutes.js');
 const adminRoutes = require('./routes/adminRoutes.js');
+const reportRoutes = require('./routes/reportRoutes.js');
+const coachRoutes = require('./routes/coachRoutes.js');
+const athleteRoutes = require('./routes/athleteRoutes.js');
+const publicRoutes = require('./routes/publicRoutes.js');
 
 const app = express();
 
@@ -47,10 +51,14 @@ const startServer = async () => {
     app.use('/uploads', express.static(uploadsDir));
 
     // Routes
+    app.use('/api/public', publicRoutes);
     app.use('/api/auth', authRoutes);
     app.use('/api/upload', uploadRoutes);
     app.use('/api/analysis', analysisRoutes);
     app.use('/api/admin', adminRoutes);
+    app.use('/api/reports', reportRoutes);
+    app.use('/api/coach', coachRoutes);
+    app.use('/api/athlete', athleteRoutes);
 
 
     // Basic test route

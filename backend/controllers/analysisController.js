@@ -8,6 +8,7 @@ const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000';
  * saves the result to MongoDB, and returns JSON payload.
  */
 const runAnalysis = async (req, res) => {
+  let initialDoc = null;
   try {
     const { videoUrl, publicId } = req.body;
     const userId = req.user ? req.user._id : null;
@@ -18,17 +19,46 @@ const runAnalysis = async (req, res) => {
 
     console.log(`[Backend API] Requesting ML service analysis for video URL: ${videoUrl}`);
 
+    // Create an initial processing record in MongoDB for live Admin statistics
+    if (mongoose.connection.readyState === 1 && userId && mongoose.Types.ObjectId.isValid(userId)) {
+      try {
+        initialDoc = await Analysis.create({
+          user: userId,
+          videoUrl: videoUrl,
+          cloudinaryPublicId: publicId || '',
+          stroke: 'Processing...',
+          confidence: 0,
+          status: 'processing',
+        });
+      } catch (docErr) {
+        console.warn('[Backend API] Could not create initial processing doc:', docErr.message);
+      }
+    }
+
     // Call Python FastAPI ML Service
-    const mlResponse = await fetch(`${ML_SERVICE_URL}/api/ml/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        video_url: videoUrl,
-        user_id: userId ? userId.toString() : null,
-      }),
-    });
+    let mlResponse;
+    try {
+      mlResponse = await fetch(`${ML_SERVICE_URL}/api/ml/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          video_url: videoUrl,
+          user_id: userId ? userId.toString() : null,
+        }),
+      });
+    } catch (fetchErr) {
+      if (initialDoc) {
+        initialDoc.status = 'failed';
+        await initialDoc.save().catch(() => {});
+      }
+      throw new Error(`ML Service unreachable at ${ML_SERVICE_URL}: ${fetchErr.message}`);
+    }
 
     if (!mlResponse.ok) {
+      if (initialDoc) {
+        initialDoc.status = 'failed';
+        await initialDoc.save().catch(() => {});
+      }
       const errText = await mlResponse.text();
       throw new Error(`ML Service responded with status ${mlResponse.status}: ${errText}`);
     }
@@ -47,31 +77,46 @@ const runAnalysis = async (req, res) => {
     mlResult.visualizations = formattedVisualizations;
     mlResult.videoUrl = videoUrl;
 
-    // Persist analysis record in MongoDB with user ownership reference
-    let savedRecord = null;
+    // Update initial doc or create completed record in MongoDB
+    let savedRecord = initialDoc;
     if (mongoose.connection.readyState === 1 && userId && mongoose.Types.ObjectId.isValid(userId)) {
       try {
-        const analysisDoc = new Analysis({
-          user: userId,
-          videoUrl: videoUrl,
-          cloudinaryPublicId: publicId || '',
-          stroke: mlResult.prediction.stroke,
-          confidence: mlResult.prediction.confidence,
-          confidenceBreakdown: mlResult.prediction.confidence_breakdown,
-          scores: mlResult.scores,
-          bodyAnalysis: mlResult.body_analysis,
-          feedback: mlResult.feedback,
-          coachingText: mlResult.coaching_text,
-          videoMetadata: mlResult.video_metadata,
-          pdfFilename: mlResult.pdf_filename,
-          pdfDownloadUrl: mlResult.pdf_download_url,
-          visualizations: formattedVisualizations,
-          status: 'completed',
-        });
-
-        savedRecord = await analysisDoc.save();
+        if (savedRecord) {
+          savedRecord.stroke = mlResult.prediction?.stroke || 'Cricket Shot';
+          savedRecord.confidence = mlResult.prediction?.confidence || 0;
+          savedRecord.confidenceBreakdown = mlResult.prediction?.confidence_breakdown || {};
+          savedRecord.scores = mlResult.scores || {};
+          savedRecord.bodyAnalysis = mlResult.body_analysis || {};
+          savedRecord.feedback = mlResult.feedback || [];
+          savedRecord.coachingText = mlResult.coaching_text || '';
+          savedRecord.videoMetadata = mlResult.video_metadata || {};
+          savedRecord.pdfFilename = mlResult.pdf_filename || '';
+          savedRecord.pdfDownloadUrl = mlResult.pdf_download_url || '';
+          savedRecord.visualizations = formattedVisualizations;
+          savedRecord.status = 'completed';
+          await savedRecord.save();
+        } else {
+          const analysisDoc = new Analysis({
+            user: userId,
+            videoUrl: videoUrl,
+            cloudinaryPublicId: publicId || '',
+            stroke: mlResult.prediction?.stroke || 'Cricket Shot',
+            confidence: mlResult.prediction?.confidence || 0,
+            confidenceBreakdown: mlResult.prediction?.confidence_breakdown || {},
+            scores: mlResult.scores || {},
+            bodyAnalysis: mlResult.body_analysis || {},
+            feedback: mlResult.feedback || [],
+            coachingText: mlResult.coaching_text || '',
+            videoMetadata: mlResult.video_metadata || {},
+            pdfFilename: mlResult.pdf_filename || '',
+            pdfDownloadUrl: mlResult.pdf_download_url || '',
+            visualizations: formattedVisualizations,
+            status: 'completed',
+          });
+          savedRecord = await analysisDoc.save();
+        }
       } catch (dbErr) {
-        console.warn('[Backend API] Failed to save analysis to MongoDB (proceeding anyway):', dbErr.message);
+        console.warn('[Backend API] Failed to save analysis to MongoDB:', dbErr.message);
       }
     }
 
@@ -81,6 +126,10 @@ const runAnalysis = async (req, res) => {
       data: mlResult,
     });
   } catch (error) {
+    if (initialDoc) {
+      initialDoc.status = 'failed';
+      await initialDoc.save().catch(() => {});
+    }
     console.error('[Backend API] Analysis error:', error.message);
     return res.status(500).json({
       success: false,

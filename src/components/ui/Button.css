@@ -40,10 +40,10 @@
 
 .btn--primary {
   background: var(--accent-teal);
-  color: #06110e;
+  color: #ffffff;
 }
 .btn--primary:hover:not(:disabled) {
-  background: #6ce8d0;
+  opacity: 0.9;
 }
 
 .btn--secondary {
@@ -52,8 +52,8 @@
   color: var(--text-primary);
 }
 .btn--secondary:hover:not(:disabled) {
-  background: #232833;
-  border-color: #3a4150;
+  background: var(--bg-2);
+  border-color: var(--border-subtle);
 }
 
 .btn--ghost {

@@ -1,32 +1,52 @@
 # FieldSignal — Athletic Social & AI Performance Analysis Platform
 
-A full-stack, end-to-end Athletic Social & Performance Analysis Platform. **FieldSignal** combines a high-contrast React frontend, a Node.js/Express backend with MongoDB and Cloudinary video management, and a Python FastAPI Machine Learning engine powering Cricket Batting Stroke Classification, Biomechanical Pose Analysis, and PDF report generation.
+A full-stack, end-to-end Athletic Social & Performance Analysis Platform specifically tailored for **Cricket → Batting Performance, Player Recruitment & AI Video Analysis**. 
+
+**FieldSignal** combines a high-contrast React frontend, a Node.js/Express backend with MongoDB and Cloudinary video management, and a Python FastAPI Machine Learning engine powering Cricket Batting Stroke Classification, Biomechanical Pose Analysis, PDF report generation, and a **Public Cricket Home / Hub** (Cricket News, Live Scores & Public Recruitment Opportunities).
 
 ---
 
 ## 🏗️ System Architecture
 
-The project consists of three decoupled, interoperable layers:
+The project consists of three decoupled, interoperable layers plus a Public Cricket Hub:
 
 ```
                   ┌─────────────────────────────────────────┐
                   │          React 18 + Vite UI            │
-                  │   (Athlete, Coach, Admin Dashboards)    │
+                  │ (Public Hub, Athlete, Coach, Admin)     │
                   └───────────────────┬─────────────────────┘
                                       │
                       ┌───────────────┴───────────────┐
                       ▼                               ▼
      ┌─────────────────────────────────┐   ┌──────────────────────────────────┐
      │      Node.js / Express API      │   │    Python FastAPI ML Engine      │
-     │  - MongoDB (Auth & Users)       │   │  - MediaPipe (33 Landmarks)      │
-     │  - Cloudinary (Video Uploads)   │   │  - PyTorch BiLSTM (Stroke Classifier)│
-     │  - Role-Based Access Control    │   │  - Biomechanical Scoring & PDF   │
+     │  - Public Cricket News & Scores │   │  - MediaPipe (33 Landmarks)      │
+     │  - MongoDB (Auth & Users & Opps)│   │  - PyTorch BiLSTM (Stroke Classifier)│
+     │  - Cloudinary (Video Uploads)   │   │  - Biomechanical Scoring & PDF   │
+     │  - Role-Based Access Control    │   │                                  │
      └─────────────────────────────────┘   └──────────────────────────────────┘
 ```
 
-1. **Frontend (`src/`)**: React 18 + Vite application featuring a dark, high-contrast athletic design system (`src/styles/tokens.css`), interactive Recharts visualization, and Role-Based Access Control (Athlete, Coach, Admin).
-2. **Backend Service (`backend/`)**: Node.js & Express API providing authentication (JWT & bcrypt), MongoDB data persistence, Cloudinary video uploading, user management, and administration endpoints.
+1. **Public Cricket Hub & Frontend (`src/`)**: React 18 + Vite application featuring a dark/light token design system (`src/styles/tokens.css`), unauthenticated Public Cricket Home (News, Live Scores, Opportunity Feed), and Role-Based Access Control dashboards for Athletes, Coaches, and Admins.
+2. **Backend Service (`backend/`)**: Node.js & Express API providing public news/scores endpoints, authentication (JWT & bcrypt), MongoDB data persistence, Cloudinary video uploading, user management, and administration endpoints.
 3. **ML Inference Engine (`ml/`)**: Standalone Python FastAPI microservice utilizing MediaPipe for 33 3D landmark extraction, 528-dimensional frame feature engineering, PyTorch BiLSTM neural network stroke prediction, biomechanical technique scoring (0-100), and PDF analysis report creation.
+
+---
+
+## ✨ Key Features & Functionality
+
+### 1. 🏏 Public Cricket Home Page (Unauthenticated Access)
+- **Cricket Sports News**: Comprehensive World Cricket and Indian/Domestic Cricket news coverage with images, summaries, sources, publication dates, and external article links.
+- **Live Cricket Scores**: Real-time match scorecards and recent match results with controlled 45-second auto-refreshing.
+- **Public Opportunity Feed**: Unauthenticated visitors can view all active cricket batting trials/recruitment opportunities posted by coaches.
+- **Search & Batting Role Filters**: Filter public opportunities by title, location, or cricket batting role (*Opening Batter, Top-Order Batter, Middle-Order Batter, Wicketkeeper-Batter, Finisher, Batting All-Rounder*).
+- **Authentication Guarded Application**: Unauthenticated visitors clicking `[ APPLY NOW ]` are prompted to Sign In / Register without breaking page context or creating unauthorized applications.
+
+### 2. ⚡ Role-Based Access Control (RBAC) & Dashboards
+- **Guest Visitor**: Access to Cricket Home, News, Live Scores, and Public Opportunity Feed.
+- **Athlete**: Access to AI Batting Video Analysis, Biomechanical Technique Scores, Personal Application History, and One-Click Opportunity Application.
+- **Coach**: Post and manage Cricket Batting Opportunities, view applicant rosters, and track application histories. Coaches attempting to apply to athlete opportunities receive clear role authorization notifications (`"Only athletes can apply to opportunities"`).
+- **Admin**: Full User Management (Search, Soft/Permanent Ban, Delete), Platform Statistics (Real-time DB counts), Support Issue Reports management, and System Settings.
 
 ---
 
@@ -160,6 +180,23 @@ Open another **new terminal tab/window** in the project root (`Athletic-Platform
    ```
    http://localhost:5173
    ```
+   *Unauthenticated visitors will land directly on the **Public Cricket Home** page (`http://localhost:5173`).*
+
+---
+
+## 🌐 Public & Protected API Routes
+
+### Public Endpoints (No Token Required):
+- `GET /api/public/cricket/news` — World & Domestic Cricket News
+- `GET /api/public/cricket/live` — Live Scores & Recent Match Scorecards
+- `GET /api/public/opportunities` — Active Coach Opportunities Feed (supports `search` & `battingRole` query params)
+
+### Protected Endpoints (JWT Required):
+- `POST /api/athlete/apply` — Submit opportunity application (*Athlete Only*)
+- `POST /api/coach/opportunities` — Create recruitment opportunity (*Coach Only*)
+- `DELETE /api/coach/opportunities/:id` — Delete opportunity (*Coach Only*)
+- `GET /api/admin/stats` — Platform DB Analytics (*Admin Only*)
+- `PUT /api/admin/users/:id/ban` — Soft/Permanent Ban User (*Admin Only*)
 
 ---
 
@@ -169,36 +206,28 @@ Open another **new terminal tab/window** in the project root (`Athletic-Platform
 Athletic-Platform/
 ├── backend/                  # Node.js & Express Backend API
 │   ├── config/               # DB, Cloudinary & Admin Seed configurations
-│   ├── controllers/          # Request handlers (Auth, Upload, Analysis, Admin)
+│   ├── controllers/          # Request handlers (Public, Auth, Upload, Analysis, Admin, Coach, Athlete)
 │   ├── middleware/           # JWT Authentication & RBAC middleware
-│   ├── models/               # Mongoose Data Models (User, AnalysisResult)
-│   ├── routes/               # Express API endpoints
-│   ├── scripts/              # Standalone admin seed scripts
+│   ├── models/               # Mongoose Data Models (User, Opportunity, Application, Report, AnalysisResult)
+│   ├── routes/               # Express API endpoints (publicRoutes, authRoutes, coachRoutes, athleteRoutes, adminRoutes)
 │   └── server.js             # Express entry point
 │
 ├── ml/                       # Python ML & Computer Vision Engine
 │   ├── analysis/             # Biomechanical pose analysis & technique scoring
-│   ├── api/                  # High-level Python analysis API (`analyze_video`)
 │   ├── app/                  # FastAPI main application (`main.py`)
-│   ├── assets/               # Normalization matrices (mean, std)
-│   ├── config/               # Feature & model configurations (`config.yaml`)
 │   ├── features/             # 528-dim landmark feature extraction
 │   ├── inference/            # PyTorch BiLSTM stroke predictor engine
-│   ├── models/               # Neural network models & pre-trained weights (`best_model.pth`)
-│   ├── pose/                 # MediaPipe 33-landmark extractor
-│   ├── preprocessing/        # Video decoding & normalization tools
-│   ├── reports/              # PDF report generator (ReportLab)
 │   └── requirements.txt      # Python dependencies
 │
 ├── src/                      # React Frontend Application
-│   ├── api/                  # Frontend API client modules (authApi, analysisApi, mockApi)
+│   ├── api/                  # Frontend API modules (publicApi, authApi, coachApi, adminApi, analysisApi)
 │   ├── components/           # Reusable UI primitives, charts, & dashboard views
+│   │   ├── public/           # Public Cricket Home, News, Live Scores & Public Feed components (`CricketHome.jsx`)
 │   │   ├── admin/            # Admin moderation & broadcasting panels
-│   │   ├── athlete/          # Athlete dashboard, video upload, AI feedback
-│   │   ├── coach/            # Coach athlete roster & opportunity composer
+│   │   ├── athlete/          # Athlete dashboard, video upload, AI feedback, opportunity feed
+│   │   ├── coach/            # Coach athlete roster, opportunity composer, applicant history
 │   │   └── ui/               # Shared design components (Buttons, Cards, Badges, Tabs)
-│   ├── context/              # Role & Auth state providers
-│   ├── hooks/                # Data fetching custom hooks (`useAsyncData`)
+│   ├── context/              # Role, Auth & Theme state providers
 │   ├── styles/               # CSS Design tokens (`tokens.css`) & global styling
 │   ├── App.jsx               # Main React entry component
 │   └── main.jsx              # React DOM render entry
@@ -213,10 +242,10 @@ Athletic-Platform/
 
 ## ⚡ Quick Testing & Verification
 
-- **ML Inference Test**:
-  Run standalone video inference testing from the root directory:
+- **Public Hub Verification Test**:
+  Test Public News, Live Scores, Opportunities, and Unauthenticated Apply Protection:
   ```bash
-  python ml/test_ml.py <path_to_video.mp4>
+  node scratch/test_public_cricket_home.js
   ```
 
 - **Backend RBAC Test**:
@@ -233,4 +262,3 @@ If you ran `npm run seed:admin` in the backend directory:
 - **Email**: `admin@gmail.com`
 - **Password**: `admin123`
 - **Role**: `admin`
-

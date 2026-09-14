@@ -22,7 +22,7 @@ const generateToken = (id, role) => {
  */
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role: requestedRole } = req.body;
+    const { name, email, password, role: requestedRole, battingRole, battingStyle } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -68,6 +68,8 @@ const registerUser = async (req, res) => {
         email: cleanEmail,
         password,
         role: userRole,
+        battingRole: battingRole || 'Opening Batter',
+        battingStyle: battingStyle || 'Right-Handed',
       });
 
       const token = generateToken(user._id.toString(), user.role);
@@ -81,6 +83,9 @@ const registerUser = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          battingRole: user.battingRole,
+          battingStyle: user.battingStyle,
+          team: user.team,
           createdAt: user.createdAt,
         },
       });
@@ -101,6 +106,7 @@ const registerUser = async (req, res) => {
         email: cleanEmail,
         password: hashedPassword,
         role: userRole,
+        gender: userGender,
         createdAt: new Date(),
       };
 
@@ -116,6 +122,7 @@ const registerUser = async (req, res) => {
           name: mockUser.name,
           email: mockUser.email,
           role: mockUser.role,
+          gender: mockUser.gender,
           createdAt: mockUser.createdAt,
         },
       });
@@ -158,6 +165,45 @@ const loginUser = async (req, res) => {
         });
       }
 
+      if (user.isDeleted) {
+        return res.status(401).json({
+          success: false,
+          message: 'Account no longer active. Please contact administrator.',
+        });
+      }
+
+      // Ban verification & auto-unban expiration check
+      if (user.isBanned) {
+        if (user.banType === 'temporary' && user.banUntil) {
+          const now = new Date();
+          const expireDate = new Date(user.banUntil);
+          if (now < expireDate) {
+            const formattedDate = expireDate.toLocaleString('en-US', {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            });
+            const reasonText = user.banReason ? ` Reason: ${user.banReason}` : '';
+            return res.status(403).json({
+              success: false,
+              message: `Your account is temporarily banned until ${formattedDate}.${reasonText}`,
+            });
+          } else {
+            // Ban has expired! Automatically unban the user
+            user.isBanned = false;
+            user.banType = null;
+            user.banUntil = null;
+            user.banReason = '';
+            await user.save();
+          }
+        } else if (user.banType === 'permanent') {
+          const reasonText = user.banReason ? ` Reason: ${user.banReason}` : '';
+          return res.status(403).json({
+            success: false,
+            message: `Your account has been permanently banned.${reasonText}`,
+          });
+        }
+      }
+
       const isMatch = await user.matchPassword(password);
       if (!isMatch) {
         return res.status(401).json({
@@ -177,6 +223,9 @@ const loginUser = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          battingRole: user.battingRole,
+          battingStyle: user.battingStyle,
+          team: user.team,
           createdAt: user.createdAt,
         },
       });
@@ -256,6 +305,9 @@ const getMe = async (req, res) => {
         name: req.user.name,
         email: req.user.email,
         role: req.user.role,
+        battingRole: req.user.battingRole,
+        battingStyle: req.user.battingStyle,
+        team: req.user.team,
         createdAt: req.user.createdAt,
       },
     });

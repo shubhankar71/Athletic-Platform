@@ -62,6 +62,46 @@ const authenticateUser = async (req, res, next) => {
       });
     }
 
+    if (req.user.isDeleted) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account no longer active. Please contact administrator.',
+      });
+    }
+
+    if (req.user.isBanned) {
+      if (req.user.banType === 'temporary' && req.user.banUntil) {
+        const now = new Date();
+        const expireDate = new Date(req.user.banUntil);
+        if (now < expireDate) {
+          const formattedDate = expireDate.toLocaleString('en-US', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          });
+          const reasonText = req.user.banReason ? ` Reason: ${req.user.banReason}` : '';
+          return res.status(403).json({
+            success: false,
+            message: `Your account is temporarily banned until ${formattedDate}.${reasonText}`,
+          });
+        } else {
+          // Ban has expired! Automatically unban the user
+          req.user.isBanned = false;
+          req.user.banType = null;
+          req.user.banUntil = null;
+          req.user.banReason = '';
+          if (typeof req.user.save === 'function') {
+            await req.user.save();
+          }
+        }
+      } else if (req.user.banType === 'permanent') {
+        const reasonText = req.user.banReason ? ` Reason: ${req.user.banReason}` : '';
+        return res.status(403).json({
+          success: false,
+          message: `Your account has been permanently banned.${reasonText}`,
+        });
+      }
+    }
+
     next();
   } catch (error) {
     return res.status(401).json({
@@ -119,6 +159,29 @@ const requireAdmin = async (req, res, next) => {
   });
 };
 
+/**
+ * Middleware: Strictly requires authenticated user AND user.role === "coach".
+ */
+const requireCoach = async (req, res, next) => {
+  await authenticateUser(req, res, () => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required.',
+      });
+    }
+
+    if (String(req.user.role).toLowerCase() !== 'coach') {
+      return res.status(403).json({
+        success: false,
+        message: 'Coach access required to perform this action.',
+      });
+    }
+
+    next();
+  });
+};
+
 const protect = authenticateUser;
 const authorize = (...roles) => {
   return (req, res, next) => {
@@ -141,6 +204,7 @@ const authorize = (...roles) => {
 module.exports = {
   authenticateUser,
   requireAthlete,
+  requireCoach,
   requireAdmin,
   protect,
   authorize,

@@ -77,27 +77,21 @@ export function uploadAnalysisVideo() {
   return resolveAfter({ id: `an_${Date.now()}`, status: "queued" }, 400);
 }
 
-// GET /api/coach/roster?sport=&query=
-export function getAthleteRoster() {
-  return resolveAfter(ATHLETE_ROSTER);
+import { getCoachAthletesApi, getOpportunitiesApi, createOpportunityApi } from "./coachApi.js";
+
+// GET /api/coach/roster?query=&battingRole=
+export function getAthleteRoster(query = "", battingRole = "all") {
+  return getCoachAthletesApi({ search: query, battingRole });
 }
 
 // GET /api/opportunities
-export function getOpportunityPosts() {
-  return resolveAfter(OPPORTUNITY_POSTS);
+export function getOpportunityPosts(query = "", battingRole = "all", type = "all") {
+  return getOpportunitiesApi({ search: query, battingRole, type });
 }
 
-// POST /api/opportunities  { title, type, location, summary }
+// POST /api/opportunities  { title, type, location, summary, battingRole, battingStyle, ageGroup }
 export function createOpportunityPost(post) {
-  return resolveAfter(
-    {
-      id: `op_${Date.now()}`,
-      postedAt: new Date().toISOString(),
-      applicants: 0,
-      ...post,
-    },
-    500
-  );
+  return createOpportunityApi(post);
 }
 
 // GET /api/admin/broadcasts
